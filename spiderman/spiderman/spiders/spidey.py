@@ -61,16 +61,22 @@ class fourthspider(scrapy.Spider):
         writer = ix.writer()
         writer.add_document(url=url, title=title, content=paras, tags=headings, data=tables)
         writer.commit()
-        yield {'url':url, 'title':title, 'content':paras, 'tags':headings, 'data':tables}
+       
         for url in response.xpath('//a/@href').extract():
             if '#' in url:
                 continue
-	    regexp1 = re.compile(r'[^www].(iitg\.ernet\.in)')
-	    regexp2 = re.compile(r'(iitg\.ernet\.in).[^/news/node/]')
-	    if regexp1.search(url) is not None:
-		if regexp2.search(url) is not None:
-	            url = urlparse.urljoin(response.url, url.strip())
+	    url = urlparse.urljoin(response.url, url.strip())
+	    regexp1 = re.compile(r'www\.iitg\.ernet\.in')
+	    regexp2 = re.compile(r'iitg\.ernet\.in\/news\/node')
+	    regexp3 = re.compile(r'(&|\?)month=\d+')
+	    regexp4 = re.compile(r'(&|\?)year=\d+')
+	    regexp5 = re.compile(r'http\:\/\/iitg\.ernet\.in')
+	    regexp6 = re.compile(r'(((\?|&)sort=)|((\?|&)order=))')
+	    regexp7 = re.compile(r'\/activities\/all-events\/(.)+')
+
+	    if regexp7.search(url) is None and regexp6.search(url) is None and regexp5.search(url) is None and regexp1.search(url) is None and regexp2.search(url) is None and regexp3.search(url) is None and regexp4.search(url) is None:
         	    urls.append(url)
+	yield {'parent': response.url}
 
         for url in urls:
             self.logger.info('========== visiting url %s !!', url)
