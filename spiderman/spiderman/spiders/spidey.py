@@ -6,31 +6,40 @@ from whoosh.analysis import StemmingAnalyzer
 import os, os.path
 from whoosh import index
 from whoosh.qparser import QueryParser
-
+import re
 
 class fourthspider(scrapy.Spider):
     name = '4spider'
-    allowed_domains = ['alcheringa.in']
+    allowed_domains = ['iitg.ernet.in']
     start_urls = [
-        "http://www.alcheringa.in"
+        "http://intranet.iitg.ernet.in/"
     ]
     def parse(self, response):
 
         soup = BeautifulSoup(response.xpath('//html').extract()[0], 'html5lib')
         urls = []
-        title = soup.find('title').extract()
+        title = response.xpath('//title').extract()[0]
         paras = ""
         headings = ""
         tables = ""
 
         for p in soup.findAll('p'):
-                paras = paras + p.string
+		try:
+                	paras = paras + p.string
+		except:
+			pass
 
         for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5']):
-            headings = headings + h.string
+		try:
+            		headings = headings + h.string
+		except:
+			pass
 
         for td in soup.findAll('td'):
-            tables = tables + td
+		try:
+           		tables = tables + td.string
+		except:
+			pass
 
         title = unicode(title)
         tables = unicode(tables)
@@ -56,8 +65,12 @@ class fourthspider(scrapy.Spider):
         for url in response.xpath('//a/@href').extract():
             if '#' in url:
                 continue
-            url = urlparse.urljoin(response.url, url.strip())
-            urls.append(url)
+	    regexp1 = re.compile(r'[^www].(iitg\.ernet\.in)')
+	    regexp2 = re.compile(r'(iitg\.ernet\.in).[^/news/node/]')
+	    if regexp1.search(url) is not None:
+		if regexp2.search(url) is not None:
+	            url = urlparse.urljoin(response.url, url.strip())
+        	    urls.append(url)
 
         for url in urls:
             self.logger.info('========== visiting url %s !!', url)
