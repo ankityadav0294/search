@@ -5,41 +5,71 @@ from whoosh.fields import Schema, TEXT, KEYWORD, ID, STORED
 from whoosh.analysis import StemmingAnalyzer
 import os, os.path
 from whoosh import index
-from whoosh.qparser import QueryParser
 import re
+from spiderman.items import MyItem
 
 class fourthspider(scrapy.Spider):
     name = '4spider'
-    allowed_domains = ['iitg.ernet.in']
+    allowed_domains = ['doc.scrapy.org']
     start_urls = [
-        "http://intranet.iitg.ernet.in/"
+        "http://doc.scrapy.org/en/latest/"
     ]
+
     def parse(self, response):
 
-        soup = BeautifulSoup(response.xpath('//html').extract()[0], 'html5lib')
         urls = []
+        regexp = [re.compile(r'www\.iitg\.ernet\.in'),
+                  re.compile(r'iitg\.ernet\.in\/news\/node'),
+                  re.compile(r'(&|\?)month=\d+'),
+                  re.compile(r'(&|\?)year=\d+'),
+                  re.compile(r'http\:\/\/iitg\.ernet\.in'),
+                  re.compile(r'(((\?|&)sort=)|((\?|&)order=))'),
+                  re.compile(r'\/activities\/all-events\/(.)+'),
+                  ]
+
+        for url in response.xpath('//a/@href').extract():
+            if url.endswith('#'):
+                continue
+            url = urlparse.urljoin(response.url, url.strip())
+            if all((reg.search(url) is None) for reg in regexp):
+                urls.append(url)
+
+        self.parse_data(response)
+
+        item = MyItem()
+        item['url'] = response.url
+        yield item
+
+        for url in urls:
+            self.logger.info('========== visiting url %s !!', url)
+            yield scrapy.Request(url, callback=self.parse)
+
+    @staticmethod
+    def parse_data(response):
+
+        soup = BeautifulSoup(response.xpath('//html').extract()[0], 'html5lib')
         title = response.xpath('//title').extract()[0]
         paras = ""
         headings = ""
         tables = ""
 
         for p in soup.findAll('p'):
-		try:
-                	paras = paras + p.string
-		except:
-			pass
+            try:
+                paras = paras + p.string
+            except:
+                pass
 
         for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5']):
-		try:
-            		headings = headings + h.string
-		except:
-			pass
+            try:
+                headings = headings + h.string
+            except:
+                pass
 
         for td in soup.findAll('td'):
-		try:
-           		tables = tables + td.string
-		except:
-			pass
+            try:
+                tables = tables + td.string
+            except:
+                pass
 
         title = unicode(title)
         tables = unicode(tables)
@@ -48,10 +78,10 @@ class fourthspider(scrapy.Spider):
         url = unicode(response.url)
 
         schema = Schema(url=ID(stored=True),
-                title=TEXT(stored=True),
-                content=TEXT(analyzer=StemmingAnalyzer()),
-                tags=KEYWORD(stored=True),
-                data=TEXT(analyzer=StemmingAnalyzer()))
+                        title=TEXT(stored=True),
+                        content=TEXT(analyzer=StemmingAnalyzer()),
+                        tags=KEYWORD(stored=True),
+                        data=TEXT(analyzer=StemmingAnalyzer()))
 
         if not os.path.exists("indexdir"):
             os.mkdir("indexdir")
@@ -61,23 +91,3 @@ class fourthspider(scrapy.Spider):
         writer = ix.writer()
         writer.add_document(url=url, title=title, content=paras, tags=headings, data=tables)
         writer.commit()
-       
-        for url in response.xpath('//a/@href').extract():
-            if '#' in url:
-                continue
-	    url = urlparse.urljoin(response.url, url.strip())
-	    regexp1 = re.compile(r'www\.iitg\.ernet\.in')
-	    regexp2 = re.compile(r'iitg\.ernet\.in\/news\/node')
-	    regexp3 = re.compile(r'(&|\?)month=\d+')
-	    regexp4 = re.compile(r'(&|\?)year=\d+')
-	    regexp5 = re.compile(r'http\:\/\/iitg\.ernet\.in')
-	    regexp6 = re.compile(r'(((\?|&)sort=)|((\?|&)order=))')
-	    regexp7 = re.compile(r'\/activities\/all-events\/(.)+')
-
-	    if regexp7.search(url) is None and regexp6.search(url) is None and regexp5.search(url) is None and regexp1.search(url) is None and regexp2.search(url) is None and regexp3.search(url) is None and regexp4.search(url) is None:
-        	    urls.append(url)
-	yield {'parent': response.url}
-
-        for url in urls:
-            self.logger.info('========== visiting url %s !!', url)
-            yield scrapy.Request(url, callback=self.parse)

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search it Up!!!</title>
+</head>
+<body>
+    <form action="" method="post">
+    {% csrf_token %}
+        <label for="searchbar">Search: </label>
+        <input type="text" name="keyword" id="searchbar" />
+        <input type="submit" value="Search" />
+        <br>
+    </form>
+    <ul>
+        {% for i in keyword %}
+            <li><a href="{{ i.url }}">{{ i.title }}</a></li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>
