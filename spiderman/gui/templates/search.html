@@ -5,16 +5,17 @@
     <title>Search it Up!!!</title>
 </head>
 <body>
-    <form action="" method="post">
-    {% csrf_token %}
+    <form action="" method="get">
         <label for="searchbar">Search: </label>
         <input type="text" name="keyword" id="searchbar" />
         <input type="submit" value="Search" />
         <br>
     </form>
+    <h1>{{ nums }}</h1>
+    {{ urls }}
     <ul>
-        {% for i in keyword %}
-            <li><a href="{{ i.url }}">{{ i.title }}</a></li>
+        {% for url in urls %}
+            <li><a href="{{ url }}">{{ url }}</a></li>
         {% endfor %}
     </ul>
 

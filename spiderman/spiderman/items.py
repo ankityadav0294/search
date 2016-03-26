@@ -12,4 +12,8 @@ class MyItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     url = scrapy.Field()
+    title = scrapy.Field()
+    content = scrapy.Field()
+    data = scrapy.Field()
+    tags = scrapy.Field()
 

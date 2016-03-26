@@ -55,9 +55,9 @@ NEWSPIDER_MODULE = 'spiderman.spiders'
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    'scrapy.telnet.TelnetConsole': None,
-#}
+EXTENSIONS = {
+   'scrapy.extensions.closespider.CloseSpider': 30
+}
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
@@ -85,7 +85,9 @@ NEWSPIDER_MODULE = 'spiderman.spiders'
 #HTTPCACHE_STORAGE='scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 
-DOWNLOAD_MAXSIZE=7001024
-DOWNLOAD_WARNSIZE=6554432
-DEPTH_LIMIT=200
-DEPTH_STATS_VERBOSE=True
+DOWNLOAD_MAXSIZE = 7001024
+DOWNLOAD_WARNSIZE = 6554432
+DEPTH_LIMIT = 200
+DEPTH_STATS_VERBOSE = True
+URLLENGTH_LIMIT = 200
+CLOSESPIDER_ITEMCOUNT = 30
