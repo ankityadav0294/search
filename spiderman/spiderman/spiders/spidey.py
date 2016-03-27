@@ -11,9 +11,9 @@ from spiderman.items import MyItem
 
 class fourthspider(scrapy.Spider):
     name = '4spider'
-    allowed_domains = ['en.wikipedia.org']
+    allowed_domains = ['iitg.ernet.in']
     start_urls = [
-        "https://en.wikipedia.org/wiki/Main_Page"
+        "http://intranet.iitg.ernet.in"
     ]
 
     def __init__(self):
@@ -93,11 +93,11 @@ class fourthspider(scrapy.Spider):
             pass
 
         paras += headings
-        title = unicode(title.decode('string_escape'))
-        tables = unicode(tables.decode('string_escape'))
-        paras = unicode(paras.decode('string_escape'))
-        headings = unicode(headings.decode('string_escape'))
-        url = unicode(response.url.decode('string_escape'))
+        title = unicode(title)
+        tables = unicode(tables)
+        paras = unicode(paras)
+        headings = unicode(headings)
+        url = unicode(response.url)
 
         self.writer.add_document(url=url, title=title, content=paras, tags=headings, data=tables)
         self.logger.info("added To whoosh")

@@ -12,15 +12,11 @@ def searchview(request):
         ix = index.open_dir(os.path.join("..", "indexdir"))
         qp = QueryParser("content", schema=ix.schema)
         q = qp.parse(unicode(keyword))
-        urls = {}
-        titles = {}
+        urls = []
         with ix.searcher() as s:
             results = s.search(q)
-            i = 0
             for hit in results:
-                urls[i] = hit['url']
-                titles[i] = hit['title']
-                i += 1
-            context = {'urls': urls, 'titles': titles, 'nums': len(results)}
+                urls.append([hit['url'], hit['title'], hit['tags']])
+            context = {'urls': urls, 'nums': len(results)}
         return render(request, 'search.html', context)
     return render(request, 'search.html', {'urls': ['NULL'], 'titles': ['NULL'], 'nums': -1})

@@ -12,10 +12,11 @@
         <br>
     </form>
     <h1>{{ nums }}</h1>
-    {{ urls }}
     <ul>
         {% for url in urls %}
-            <li><a href="{{ url }}">{{ url }}</a></li>
+            <li><a href="{{ url.0 }}">{{ url.1 }}</a>
+                <p>{{ url.2 }}</p>
+            </li>
         {% endfor %}
     </ul>
 
