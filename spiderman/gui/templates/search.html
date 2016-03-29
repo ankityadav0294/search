@@ -7,18 +7,25 @@
 <body>
     <form action="" method="get">
         <label for="searchbar">Search: </label>
-        <input type="text" name="keyword" id="searchbar" />
+            <input type="text" name="keyword" id="searchbar" value="{{ keyword }}"/>
         <input type="submit" value="Search" />
         <br>
     </form>
-    <h1>{{ nums }}</h1>
-    <ul>
-        {% for url in urls %}
-            <li><a href="{{ url.0 }}">{{ url.1 }}</a>
-                <p>{{ url.2 }}</p>
-            </li>
-        {% endfor %}
-    </ul>
-
+    {% if nums %}
+        <h1>{{ nums }}</h1>
+        {% if dym %}
+            <h3>Did you mean ? {{ dym }}</h3>
+        {% endif %}
+        <ul>
+            {% for url in urls %}
+                <li><a href="{{ url.0 }}">{{ url.1 }}</a>
+                    <br>
+                    <span><i>{{ url.0 }}</i></span>
+                    <p>{{ url.2 }}</p>
+                    <p>{{ url.3 }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 </body>
 </html>

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from whoosh.qparser import QueryParser
+from whoosh.qparser import QueryParser, FuzzyTermPlugin
 from whoosh import index
 import os
 
@@ -12,11 +12,31 @@ def searchview(request):
         ix = index.open_dir(os.path.join("..", "indexdir"))
         qp = QueryParser("content", schema=ix.schema)
         q = qp.parse(unicode(keyword))
+        context = {}
         urls = []
         with ix.searcher() as s:
             results = s.search(q)
             for hit in results:
                 urls.append([hit['url'], hit['title'], hit['tags']])
-            context = {'urls': urls, 'nums': len(results)}
+
+            context['urls'] = urls
+            context['nums'] = len(results)
+            context['keyword'] = keyword
+
+            corrected = s.correct_query(q, unicode(keyword))
+            if corrected.query != q:
+                context['dym'] = corrected.string
+                qp.add_plugin(FuzzyTermPlugin())
+                keyword_length = len(keyword)
+                keyword_length /= 3
+                q = qp.parse(unicode(keyword + '~/' + str(int(keyword_length))))
+                with ix.searcher() as s:
+                    results = s.search(q)
+                    for hit in results:
+                        urls.append([hit['url'], hit['title'], hit['tags'], hit.highlights("content")])
+
+                    context['urls'] = urls
+                    context['nums'] = len(results)
+
         return render(request, 'search.html', context)
-    return render(request, 'search.html', {'urls': ['NULL'], 'titles': ['NULL'], 'nums': -1})
+    return render(request, 'search.html')
