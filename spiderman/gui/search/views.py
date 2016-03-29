@@ -15,7 +15,7 @@ def searchview(request):
         context = {}
         urls = []
         with ix.searcher() as s:
-            results = s.search(q)
+            results = s.search(q, limit=None)
             for hit in results:
                 urls.append([hit['url'], hit['title'], hit['tags']])
 
@@ -24,19 +24,20 @@ def searchview(request):
             context['keyword'] = keyword
 
             corrected = s.correct_query(q, unicode(keyword))
-            if corrected.query != q:
-                context['dym'] = corrected.string
-                qp.add_plugin(FuzzyTermPlugin())
-                keyword_length = len(keyword)
-                keyword_length /= 3
-                q = qp.parse(unicode(keyword + '~/' + str(int(keyword_length))))
-                with ix.searcher() as s:
-                    results = s.search(q)
-                    for hit in results:
-                        urls.append([hit['url'], hit['title'], hit['tags'], hit.highlights("content")])
 
-                    context['urls'] = urls
-                    context['nums'] = len(results)
+        if corrected.query != q:
+            context['dym'] = corrected.string
+            qp.add_plugin(FuzzyTermPlugin())
+            keyword_length = len(keyword)
+            keyword_length /= 3
+            q = qp.parse(unicode(keyword + '~/' + str(int(keyword_length))))
+            with ix.searcher() as s:
+                results = s.search(q, limit=None)
+                for hit in results:
+                    urls.append([hit['url'], hit['title'], hit['tags']])
+
+                context['urls'] = urls
+                context['nums'] = len(results)
 
         return render(request, 'search.html', context)
     return render(request, 'search.html')
