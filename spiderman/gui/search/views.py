@@ -14,8 +14,15 @@ def searchview(request):
         q = qp.parse(unicode(keyword))
         context = {}
         urls = []
+        if 'page' not in request.GET:
+            page = 1
+        else:
+            page = int(request.GET['page'])
+
+        context['page'] = page
+
         with ix.searcher() as s:
-            results = s.search(q, limit=None)
+            results = s.search_page(q, page)
             for hit in results:
                 urls.append([hit['url'], hit['title'], hit['tags']])
 
@@ -32,7 +39,7 @@ def searchview(request):
             keyword_length /= 3
             q = qp.parse(unicode(keyword + '~/' + str(int(keyword_length))))
             with ix.searcher() as s:
-                results = s.search(q, limit=None)
+                results = s.search_page(q, page)
                 for hit in results:
                     urls.append([hit['url'], hit['title'], hit['tags']])
 
@@ -40,4 +47,5 @@ def searchview(request):
                 context['nums'] = len(results)
 
         return render(request, 'search.html', context)
+
     return render(request, 'search.html')
