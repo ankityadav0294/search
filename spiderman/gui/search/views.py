@@ -22,7 +22,7 @@ def searchview(request):
         context['page'] = page
 
         with ix.searcher() as s:
-            results = s.search_page(q, page)
+            results = s.search(q, limit=None)
             for hit in results:
                 urls.append([hit['url'], hit['title'], hit['tags']])
 
@@ -39,7 +39,7 @@ def searchview(request):
             keyword_length /= 3
             q = qp.parse(unicode(keyword + '~/' + str(int(keyword_length))))
             with ix.searcher() as s:
-                results = s.search_page(q, page)
+                results = s.search(q, limit=None)
                 for hit in results:
                     urls.append([hit['url'], hit['title'], hit['tags']])
 

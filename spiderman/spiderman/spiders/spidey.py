@@ -4,18 +4,18 @@ from bs4 import BeautifulSoup
 from whoosh.fields import Schema, TEXT, KEYWORD, ID
 from whoosh.analysis import StemmingAnalyzer, CharsetFilter
 from whoosh.support.charset import default_charset, charset_table_to_dict
-
+import hashlib
 import os, os.path
 from whoosh import index
 import re
 from spiderman.items import MyItem
-
+import requests
 
 class fourthspider(scrapy.Spider):
     name = '4spider'
-    allowed_domains = ['timesofindia.indiatimes.com']
+    allowed_domains = ['iitg.ernet.in']
     start_urls = [
-        "http://timesofindia.indiatimes.com/"
+        "http://intranet.iitg.ernet.in"
     ]
 
     def __init__(self):
@@ -41,6 +41,7 @@ class fourthspider(scrapy.Spider):
                        re.compile(r'(((\?|&)sort=)|((\?|&)order=))'),
                        re.compile(r'/activities/all-events/(.)+'),
                        ]
+        self.crawled_hash = []
 
     def close(self, spider, reason):
         self.logger.info("Commited Changes to indexing")
@@ -48,6 +49,16 @@ class fourthspider(scrapy.Spider):
         return scrapy.Spider.close(spider, reason)
 
     def parse(self, response):
+
+        url = response.url
+        source_code = requests.get(url)
+        plain_text = source_code.text
+        plain_text=plain_text.encode('ascii','ignore')
+        m=hashlib.sha1(str(plain_text)).hexdigest()
+        if str(m) not in self.crawled_hash:
+            self.crawled_hash.append(str(m))
+        else:
+            return
 
         urls = []
 
