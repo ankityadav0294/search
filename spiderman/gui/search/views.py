@@ -1,4 +1,3 @@
-#from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render
 from whoosh.qparser import QueryParser, FuzzyTermPlugin
 from whoosh import index
