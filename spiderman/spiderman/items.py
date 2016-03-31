@@ -16,4 +16,5 @@ class MyItem(scrapy.Item):
     content = scrapy.Field()
     data = scrapy.Field()
     tags = scrapy.Field()
+    urlid = scrapy.Field()
 

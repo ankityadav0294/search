@@ -61,9 +61,9 @@ EXTENSIONS = {
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'spiderman.pipelines.SomePipeline': 300,
-#}
+# ITEM_PIPELINES = {
+#    'spiderman.pipelines.MysqlPipeline': 300,
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -90,4 +90,4 @@ DOWNLOAD_WARNSIZE = 6554432
 # DEPTH_LIMIT = 200
 DEPTH_STATS_VERBOSE = True
 # URLLENGTH_LIMIT = 200
-# CLOSESPIDER_ITEMCOUNT = 100
+CLOSESPIDER_ITEMCOUNT = 5

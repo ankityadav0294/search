@@ -15,22 +15,27 @@ def searchview(request):
         q = qp.parse(unicode(keyword))
         context = {}
         urls = []
-        page  = 1
+        page = 1
         if 'paginate' in request.GET:
             paginate = int(request.GET['paginate'])
             page = int(request.GET['page'])
             if paginate == 0:
-                page -=1
+                page -= 1
             else:
                 page +=1
 
-        if page< 1:
+        if page < 1:
                 page = 1
 
         with ix.searcher() as s:
             results = s.search_page(q, page)
             for hit in results:
-                urls.append([hit['url'], hit['title'], hit['tags']])
+                highlight = ''
+                temp = hit.highlights("content")
+                for text in temp:
+                    highlight += text
+
+                urls.append([hit['url'], hit['title'], hit['tags'], highlight])
 
             context['urls'] = urls
             context['nums'] = len(results)
@@ -47,7 +52,12 @@ def searchview(request):
             with ix.searcher() as s:
                 results = s.search_page(q, page)
                 for hit in results:
-                    urls.append([hit['url'], hit['title'], hit['tags']])
+                    highlight = ''
+                    temp = hit.highlights("content")
+                    for text in temp:
+                        highlight += text
+
+                    urls.append([hit['url'], hit['title'], hit['tags'], highlight])
 
                 context['urls'] = urls
                 context['nums'] = len(results)
@@ -68,7 +78,7 @@ def searchview(request):
         else:
             context['end'] = len(results)/10 + 1
         if context['end'] < page:
-            page =  context['end']
+            page = context['end']
         context['page'] = page
         return render(request, 'search.html' , context)
 
