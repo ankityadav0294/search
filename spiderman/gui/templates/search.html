@@ -12,7 +12,7 @@
         <div class="panel-body">
             <form action="" method="get" class="form-inline container">
                 <div class="form-group">
-                    <labe for="searchbar" class="sr-only">Search</labe>
+                    <label for="searchbar" class="sr-only">Search</label>
                     <div class="input-group">
                         <input type="text" onClick="this.select();" class="form-control" name="keyword" id="searchbar" value="{{ keyword }}">
                         <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
@@ -22,9 +22,10 @@
             </form>
         </div>
     </div>
+
+    <div class="container">
     {% if nums %}
-        <div class="container">
-            <small>Number of results: {{ nums }}</small>
+        <small>Number of results: {{ nums }}</small>
 
         {% if dym %}
             <h4>
@@ -32,6 +33,7 @@
                 <a href="./?keyword={{ dym }}">{{ dym }}</a>
             </h4>
         {% endif %}
+
             <ul class="list-group">
                 {% for url in urls %}
                     <li class="list-group-item"><a href="{{ url.0 }}">{{ url.1 }}</a>
@@ -41,30 +43,19 @@
                     </li>
                 {% endfor %}
             </ul>
-            <nav>
-                <ul class="pagination">
-                    <li>
-                        <a href="#" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    <li><a href="#">1</a></li>
-                    <li><a href="#">2</a></li>
-                    <li><a href="#">3</a></li>
-                    <li><a href="#">4</a></li>
-                    <li><a href="#">5</a></li>
-                    <li>
-                        <a href="#" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
 
+        <div class="pagination">
+            <span class="step-links">
+                        <a href="?keyword={{ keyword }}&page={{ page }}&paginate=0">Previous</a>
+                    <span class="current">
+                        Page {{ page }} of {{ end }}.
+                    </span>
+                    <a href="?keyword={{ keyword }}&page={{ page }}&paginate=1">Next</a>
+            </span>
         </div>
 
     {% endif %}
-
+    </div>
     <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 </body>
 </html>

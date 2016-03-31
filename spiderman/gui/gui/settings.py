@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'search',
     'whoosh',
+ #   'pagination',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -48,6 +49,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #'pagination.middleware.PaginationMiddleware',
 ]
 
 ROOT_URLCONF = 'gui.urls'
@@ -63,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+               # 'django.core.context_processors.request',
             ],
         },
     },
