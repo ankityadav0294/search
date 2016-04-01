@@ -34,7 +34,7 @@ class fourthspider(scrapy.Spider):
 
         schema = Schema(url=ID(stored=True),
                         title=TEXT(stored=True),
-                        content=TEXT(stored=True, spelling=True),
+                        content=TEXT(stored=True, analyzer=my_analyzer, spelling=True),
                         tags=KEYWORD(stored=True),
                         urlid=STORED)
 
@@ -109,6 +109,7 @@ class fourthspider(scrapy.Spider):
             yield {'url': item['url']}
         except:
             pass
+
         for url in response.selector.xpath('//a/@href').extract():
             if url.endswith('#'):
                 continue
@@ -116,7 +117,7 @@ class fourthspider(scrapy.Spider):
             if all((reg.search(url) is None) for reg in self.regexp):
                 urls.append(url)
             else:
-                self.ignored.write(response.url + '     regex' + '\n')
+                self.ignored.write(url + '     regex' + '\n')
 
         for url in urls:
             self.logger.info('========== visiting url %s !!', url)
@@ -130,39 +131,34 @@ class fourthspider(scrapy.Spider):
         texts = soup.findAll(text=True)
         content = filter(visible, texts)
         temp = ''
+
         for s in content:
             try:
                 temp += ' ' + unicode(literal_eval("'%s'" % s))
             except:
                 continue
         content = temp
+
         tags = ""
-        try:
-            for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7']):
+        for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7']):
                 try:
                     tags = tags + " " + h.string
                 except:
                     continue
-        except:
-            pass
 
         title = unicode(title)
         tags = unicode(tags)
         # content = unicode(content)
         url = unicode(response.url)
         urlid = unicode(str(m))
-        try:
-            self.writer.add_document(url=url, title=title, content=content, tags=tags, urlid=urlid)
-        except:
-            return
+
+        self.writer.add_document(url=url, title=title, content=content, tags=tags, urlid=urlid)
+
         self.logger.info("added To whoosh")
         return {'url': url, 'title': title, 'content': content, 'tags': tags, 'urlid': urlid}
 
     def index_file(self, referer, url):
-        try:
-            source_code = requests.get(referer)
-        except:
-            return
+        source_code = requests.get(referer)
         plain_text = source_code.text
         soup = BeautifulSoup(plain_text, "lxml")
 
@@ -170,10 +166,13 @@ class fourthspider(scrapy.Spider):
             href = link.get('href')
             if not url.endswith(href):
                 continue
-
-            r = requests.get(url)
-            if "text/html" in r.headers["content-type"]:
-                continue
+            # try:
+            #     r = requests.get(url)
+            #     if "text/html" in r.headers["content-type"]:
+            #         continue
+            # except:
+            #     pass
+            #
             title = ''
             content = ''
 
@@ -183,7 +182,7 @@ class fourthspider(scrapy.Spider):
                 title = href
 
             try:
-                content = link.find_parent("tr").get_text() + title
+                content = link.find_parent("tr").get_text() + ' ' + title
             except:
                 content = title
 
@@ -200,10 +199,7 @@ class fourthspider(scrapy.Spider):
 
             self.files.write(url + '\n')
             self.logger.info("file To whoosh")
-            try:
-                self.writer.add_document(url=unicode(url), title=unicode(title), content=unicode(content))
-            except:
-                return
+            self.writer.add_document(url=unicode(url), title=unicode(title), content=unicode(content))
 
 def visible(element):
     if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
