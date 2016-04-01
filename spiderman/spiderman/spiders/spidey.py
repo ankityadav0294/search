@@ -47,8 +47,8 @@ class fourthspider(scrapy.Spider):
 	               re.compile(r'(csea\/Public\/web_new\/index\.php\/activities\/others)'),
                        re.compile(r'calendar'),
 		       re.compile(r'\d\d\d\d\/\d\d\/\d\d'),
-		       re.compile(r'\?C=(.);O=(.)')
-		       re.compile(r'\d\d\d\d-\d\d-\d\d')
+		       re.compile(r'\?C=(.);O=(.)'),
+		       re.compile(r'\d\d\d\d-\d\d-\d\d'),
                        ]
 
         self.crawled_hash = []
