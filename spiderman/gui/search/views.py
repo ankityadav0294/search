@@ -31,13 +31,16 @@ def searchview(request):
             results = s.search_page(q, page)
             for hit in results:
                 content = hit.highlights("content", top=8)
-                content = re.sub('((\'|\"), u(\'|\"))', '... ', content)
-                content = re.sub('(\\\u)|(\'u)|(u\')|(\|)|(\\\\)', '', content)
-                tags = hit.highlights("tags", top=4)
-                tags = re.sub('((\'|\"), u(\'|\"))', '... ', tags)
-                tags = re.sub('(\\\u)|(\'u)|(u\')|(\|)|(\\\\)', '', tags)
+                # content = re.sub('((\'|\"), u(\'|\"))', '... ', content)
+                # content = re.sub('(\\\u)|(\'u)|(u\')|(\|)|(\\\\)', '', content)
+                # tags = hit.highlights("tags", top=4)
+                # tags = re.sub('((\'|\"), u(\'|\"))', '... ', tags)
+                # tags = re.sub('(\\\u)|(\'u)|(u\')|(\|)|(\\\\)', '', tags)
                 urls.append(
-                        [hit['url'], hit['title'], tags.encode('utf-8', 'ignore'), content.encode('utf-8', 'ignore')])
+                        [hit['url'], hit['title'],
+                         # tags.encode('utf-8', 'ignore'),
+                         content.encode('utf-8', 'ignore')
+                         ])
 
             context['urls'] = urls
             context['nums'] = len(results)
