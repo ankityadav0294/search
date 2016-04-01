@@ -1,5 +1,4 @@
 .idea
 *.json
 *.pyc
-spiderman/indexdir
 *.txt
