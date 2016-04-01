@@ -14,9 +14,13 @@ from spiderman.items import MyItem
 
 class fourthspider(scrapy.Spider):
     name = '4spider'
-    allowed_domains = ['iitg.ernet.in']
+    allowed_domains = ['iitg.ernet.in', 
+			'202.141', 
+			'172.16'
+    ]
     start_urls = [
-        "http://intranet.iitg.ernet.in"
+        "http://intranet.iitg.ernet.in",
+    	"http://repo.cse.iitg.ernet.in/"
     ]
 
     def __init__(self):
@@ -49,6 +53,8 @@ class fourthspider(scrapy.Spider):
 		       re.compile(r'\d\d\d\d\/\d\d\/\d\d'),
 		       re.compile(r'\?C=(.);O=(.)'),
 		       re.compile(r'\d\d\d\d-\d\d-\d\d'),
+		       re.compile(r'\/eventcal\/'),
+		       re.compile(r'week/\d\d\d\d-W\d+'),
                        ]
 
         self.crawled_hash = []

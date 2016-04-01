@@ -3,3 +3,7 @@
 *.pyc
 spiderman/indexdir
 *.txt
+*.json~
+*.pyc~
+*.txt~
+
