@@ -8,14 +8,15 @@ import hashlib
 import os, os.path
 from whoosh import index
 import re
+import requests
 from spiderman.items import MyItem
 
 
 class fourthspider(scrapy.Spider):
     name = '4spider'
-    allowed_domains = ['timesofindia.indiatimes.com']
+    allowed_domains = ['iitg.ernet.in']
     start_urls = [
-        "http://timesofindia.indiatimes.com/"
+        "http://intranet.iitg.ernet.in"
     ]
 
     def __init__(self):
@@ -28,7 +29,6 @@ class fourthspider(scrapy.Spider):
         schema = Schema(url=ID(stored=True),
                         title=TEXT(stored=True),
                         content=TEXT(stored=True, analyzer=my_analyzer, spelling=True),
-                        data=STORED,
                         tags=KEYWORD(stored=True),
                         urlid=STORED)
 
@@ -46,21 +46,33 @@ class fourthspider(scrapy.Spider):
                        ]
 
         self.crawled_hash = []
+        self.files = open('indexed_files.txt', 'w')
+        self.ignored = open('ignored.txt', 'w')
 
     def close(self, spider, reason):
         self.logger.info("Commited Changes to indexing")
         self.writer.commit()
+        self.files.close()
+        self.ignored.close()
         return scrapy.Spider.close(spider, reason)
 
     def parse(self, response):
 
-        soup = BeautifulSoup(response.selector.xpath('//html').extract()[0], 'html5lib')
+        try:
+            soup = BeautifulSoup(response.selector.xpath('//html').extract()[0], 'html5lib')
+        except:
+            referer = response.request.headers.get('Referer', None)
+            self.index_file(referer, response.url)
+            self.logger.info('file referer %s', referer)
+            return
+
         plain_text = soup.prettify()
         plain_text = plain_text.encode('ascii', 'ignore')
         m = hashlib.sha1(str(plain_text)).hexdigest()
         if str(m) not in self.crawled_hash:
             self.crawled_hash.append(str(m))
         else:
+            self.ignored.write(response.url + '     hash' + '\n')
             return
 
         urls = []
@@ -74,7 +86,7 @@ class fourthspider(scrapy.Spider):
         item['title'] = data['title']
         item['urlid'] = data['urlid']
 
-        yield item
+        yield {'url': item['url']}
 
         for url in response.selector.xpath('//a/@href').extract():
             if url.endswith('#'):
@@ -82,6 +94,8 @@ class fourthspider(scrapy.Spider):
             url = urlparse.urljoin(response.url, url.strip())
             if all((reg.search(url) is None) for reg in self.regexp):
                 urls.append(url)
+            else:
+                self.ignored.write(response.url + '     regex' + '\n')
 
         for url in urls:
             self.logger.info('========== visiting url %s !!', url)
@@ -108,14 +122,43 @@ class fourthspider(scrapy.Spider):
         url = unicode(response.url)
         urlid = unicode(str(m))
 
-        self.writer.add_document(url=url, title=title, data=content, content=content, tags=tags, urlid=urlid)
+        self.writer.add_document(url=url, title=title, content=content, tags=tags, urlid=urlid)
         self.logger.info("added To whoosh")
         return {'url': url, 'title': title, 'content': content, 'tags': tags, 'urlid': urlid}
 
+    def index_file(self, referer, url):
+        source_code = requests.get(referer)
+        plain_text = source_code.text
+        soup = BeautifulSoup(plain_text, "lxml")
+
+        for link in soup.findAll('a'):
+            href = link.get('href')
+            if not url.endswith(href):
+                continue
+
+            r = requests.get(href)
+            if "text/html" in r.headers["content-type"]:
+                continue
+            title = ''
+            content = ''
+
+            try:
+                title = link.string + ' ' + href
+            except:
+                title = href
+
+            try:
+                content = link.find_parent("tr").get_text() + title
+            except:
+                content = title
+
+            self.files.write(url + '\n')
+            self.logger.info("file To whoosh")
+            self.writer.add_document(url=unicode(url), title=unicode(title), content=unicode(content))
 
 def visible(element):
-        if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
-            return False
-        elif re.match('<!--.*-->', element.encode('ascii', 'ignore')):
-            return False
-        return True
+    if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
+        return False
+    elif re.match('<!--.*-->', element.encode('ascii', 'ignore')):
+        return False
+    return True
