@@ -40,9 +40,14 @@ class fourthspider(scrapy.Spider):
                        re.compile(r'(&|\?)month=\d+'),
                        re.compile(r'(&|\?)year=\d+'),
                        re.compile(r'(&|\?)day=\d+'),
+		       re.compile(r'(&|\?)week=\d+'),
                        re.compile(r'http://iitg\.ernet\.in'),
                        re.compile(r'(((\?|&)sort=)|((\?|&)order=))'),
                        re.compile(r'/activities/all-events/(.)+'),
+	               re.compile(r'(csea\/Public\/web_new\/index\.php\/activities\/others)'),
+                       re.compile(r'calendar'),
+		       re.compile(r'\d\d\d\d\/\d\d\/\d\d'),
+		       re.compile(r'\?C=(.);O=(.)')
                        ]
 
         self.crawled_hash = []
