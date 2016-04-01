@@ -99,15 +99,16 @@ class fourthspider(scrapy.Spider):
         data = self.parse_data(response, m)
 
         item = MyItem()
-        item['url'] = data['url']
-        item['content'] = data['content']
-        item['tags'] = data['tags']
-        item['title'] = data['title']
-        item['urlid'] = data['urlid']
-
-        self.inurls.write(response.url + ' \n')
-        yield {'url': item['url']}
-
+        try:
+            item['url'] = data['url']
+            item['content'] = data['content']
+            item['tags'] = data['tags']
+            item['title'] = data['title']
+            item['urlid'] = data['urlid']
+            self.inurls.write(response.url + ' \n')
+            yield {'url': item['url']}
+        except:
+            pass
         for url in response.selector.xpath('//a/@href').extract():
             if url.endswith('#'):
                 continue
@@ -150,13 +151,18 @@ class fourthspider(scrapy.Spider):
         # content = unicode(content)
         url = unicode(response.url)
         urlid = unicode(str(m))
-
-        self.writer.add_document(url=url, title=title, content=content, tags=tags, urlid=urlid)
+        try:
+            self.writer.add_document(url=url, title=title, content=content, tags=tags, urlid=urlid)
+        except:
+            return
         self.logger.info("added To whoosh")
-        return {'url': url, 'title': title, 'content': content, 'tags': tags, 'urlid': urlid, 'data': content}
+        return {'url': url, 'title': title, 'content': content, 'tags': tags, 'urlid': urlid}
 
     def index_file(self, referer, url):
-        source_code = requests.get(referer)
+        try:
+            source_code = requests.get(referer)
+        except:
+            return
         plain_text = source_code.text
         soup = BeautifulSoup(plain_text, "lxml")
 
@@ -165,7 +171,7 @@ class fourthspider(scrapy.Spider):
             if not url.endswith(href):
                 continue
 
-            r = requests.get(href)
+            r = requests.get(url)
             if "text/html" in r.headers["content-type"]:
                 continue
             title = ''
@@ -181,21 +187,23 @@ class fourthspider(scrapy.Spider):
             except:
                 content = title
 
-            temp = ''
-            try:
-                for s in content:
-                    try:
-                        temp += ' ' + unicode(literal_eval("'%s'" % s))
-                    except:
-                        continue
-                content = temp
-            except:
-                continue
+            # temp = ''
+            # try:
+            #     for s in content:
+            #         try:
+            #             temp += ' ' + unicode(literal_eval("'%s'" % s))
+            #         except:
+            #             continue
+            #     content = temp
+            # except:
+            #     continue
 
             self.files.write(url + '\n')
             self.logger.info("file To whoosh")
-            self.writer.add_document(url=unicode(url), title=unicode(title), content=unicode(content))
-
+            try:
+                self.writer.add_document(url=unicode(url), title=unicode(title), content=unicode(content))
+            except:
+                return
 
 def visible(element):
     if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
