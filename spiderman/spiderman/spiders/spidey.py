@@ -10,6 +10,7 @@ from whoosh import index
 import re
 import requests
 from spiderman.items import MyItem
+from ast import literal_eval
 
 
 class fourthspider(scrapy.Spider):
@@ -20,7 +21,7 @@ class fourthspider(scrapy.Spider):
     ]
     start_urls = [
         "http://intranet.iitg.ernet.in/",
-        "http://repo.cse.iitg.ernet.in/",
+        "http://repo.cse.iitg.ernet.in/index.php/apps/files/",
         "http://iitg.ac.in/"
     ]
 
@@ -33,42 +34,45 @@ class fourthspider(scrapy.Spider):
 
         schema = Schema(url=ID(stored=True),
                         title=TEXT(stored=True),
-                        content=TEXT(stored=True, analyzer=my_analyzer, spelling=True),
+                        content=TEXT(stored=True, spelling=True),
                         tags=KEYWORD(stored=True),
                         urlid=STORED)
 
         self.ix = index.create_in("indexdir", schema)
         self.writer = self.ix.writer()
         self.logger.info("Writer created")
-        self.regexp = [re.compile(r'www\.iitg\.ernet\.in'),
-                       re.compile(r'iitg\.ernet\.in/news'),
-                       re.compile(r'(&|\?)month=\d+'),
-                       re.compile(r'(&|\?)year=\d+'),
-                       re.compile(r'(&|\?)day=\d+'),
-                       re.compile(r'(&|\?)week=\d+'),
-                       re.compile(r'http://iitg\.ernet\.in'),
-                       re.compile(r'(((\?|&)sort=)|((\?|&)order=))'),
-                       re.compile(r'/activities/all-events/(.)+'),
-                       re.compile(r'(csea\/Public\/web_new\/index\.php\/activities\/others)'),
-                       re.compile(r'calendar'),
-                       re.compile(r'\d\d\d\d\/\d\d\/\d\d'),
-                       re.compile(r'\?C=(.);O=(.)'),
-                       re.compile(r'\d\d\d\d-\d\d-\d\d'),
-                       re.compile(r'\/eventcal\/'),
-                       re.compile(r'week/\d\d\d\d-W\d+'),
-                       re.compile(r'nptel\.iitg\.ernet\.in'),
+        self.regexp = [
+            # re.compile(r'www\.iitg\.ernet\.in'),
+            re.compile(r'iitg\.ernet\.in/news'),
+            re.compile(r'(&|\?)month=\d+'),
+            re.compile(r'(&|\?)year=\d+'),
+            re.compile(r'(&|\?)day=\d+'),
+            re.compile(r'(&|\?)week=\d+'),
+            # re.compile(r'http://iitg\.ernet\.in'),
+            re.compile(r'(((\?|&)sort=)|((\?|&)order=))'),
+            re.compile(r'/activities/all-events/(.)+'),
+            re.compile(r'(csea/Public\/web_new\/index\.php/activities/others)'),
+            re.compile(r'calendar'),
+            re.compile(r'\d\d\d\d/\d\d/\d\d'),
+            re.compile(r'\?C=(.);O=(.)'),
+            re.compile(r'\d\d\d\d-\d\d-\d\d'),
+            re.compile(r'/eventcal/'),
+            re.compile(r'week/\d\d\d\d-W\d+'),
+            re.compile(r'nptel\.iitg\.ernet\.in'),
 
-                       ]
+        ]
 
         self.crawled_hash = []
         self.files = open('indexed_files.txt', 'w')
         self.ignored = open('ignored.txt', 'w')
+        self.inurls = open('inurls.txt', 'w')
 
     def close(self, spider, reason):
         self.logger.info("Commited Changes to indexing")
         self.writer.commit()
         self.files.close()
         self.ignored.close()
+        self.inurls.close()
         return scrapy.Spider.close(spider, reason)
 
     def parse(self, response):
@@ -101,6 +105,7 @@ class fourthspider(scrapy.Spider):
         item['title'] = data['title']
         item['urlid'] = data['urlid']
 
+        self.inurls.write(response.url + ' \n')
         yield {'url': item['url']}
 
         for url in response.selector.xpath('//a/@href').extract():
@@ -123,23 +128,32 @@ class fourthspider(scrapy.Spider):
         # content = soup.get_text()
         texts = soup.findAll(text=True)
         content = filter(visible, texts)
-
+        temp = ''
+        for s in content:
+            try:
+                temp += ' ' + unicode(literal_eval("'%s'" % s))
+            except:
+                continue
+        content = temp
         tags = ""
         try:
             for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7']):
-                tags = tags + " " + h.string
+                try:
+                    tags = tags + " " + h.string
+                except:
+                    continue
         except:
             pass
 
         title = unicode(title)
         tags = unicode(tags)
-        content = unicode(content)
+        # content = unicode(content)
         url = unicode(response.url)
         urlid = unicode(str(m))
 
         self.writer.add_document(url=url, title=title, content=content, tags=tags, urlid=urlid)
         self.logger.info("added To whoosh")
-        return {'url': url, 'title': title, 'content': content, 'tags': tags, 'urlid': urlid}
+        return {'url': url, 'title': title, 'content': content, 'tags': tags, 'urlid': urlid, 'data': content}
 
     def index_file(self, referer, url):
         source_code = requests.get(referer)
@@ -166,6 +180,17 @@ class fourthspider(scrapy.Spider):
                 content = link.find_parent("tr").get_text() + title
             except:
                 content = title
+
+            temp = ''
+            try:
+                for s in content:
+                    try:
+                        temp += ' ' + unicode(literal_eval("'%s'" % s))
+                    except:
+                        continue
+                content = temp
+            except:
+                continue
 
             self.files.write(url + '\n')
             self.logger.info("file To whoosh")
