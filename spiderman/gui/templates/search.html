@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Search it Up!!!</title>
@@ -7,6 +8,7 @@
     <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
 
 </head>
+
 <body>
     <div class="panel panel-default">
         <div class="panel-body">
@@ -39,23 +41,28 @@
                     <li class="list-group-item"><a href="{{ url.0 }}">{{ url.1 }}</a>
                         <br>
                         <span style="color: green"><i>{{ url.0 }}</i></span>
-                        <p>{{ url.3 }}</p>
+                        <p>{{ url.2 |safe }} {{ url.3 |safe }}</p>
                     </li>
                 {% endfor %}
             </ul>
 
         <div class="pagination">
             <span class="step-links">
+                {% ifnotequal page 1 %}
                         <a href="?keyword={{ keyword }}&page={{ page }}&paginate=0">Previous</a>
-                    <span class="current">
-                        Page {{ page }} of {{ end }}.
-                    </span>
+                {% endifnotequal %}
+                <span class="current">
+                    Page {{ page }} of {{ end }}
+                </span>
+                {% ifnotequal page end %}
                     <a href="?keyword={{ keyword }}&page={{ page }}&paginate=1">Next</a>
+                {% endifnotequal %}
             </span>
         </div>
 
     {% endif %}
     </div>
+
     <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 </body>
 </html>

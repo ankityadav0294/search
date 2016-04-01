@@ -1,8 +1,8 @@
-#from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render
 from whoosh.qparser import QueryParser, FuzzyTermPlugin
 from whoosh import index
 import os
+import re
 
 
 # Create your views here.
@@ -22,20 +22,22 @@ def searchview(request):
             if paginate == 0:
                 page -= 1
             else:
-                page +=1
+                page += 1
 
         if page < 1:
-                page = 1
+            page = 1
 
         with ix.searcher() as s:
             results = s.search_page(q, page)
             for hit in results:
-                highlight = ''
-                temp = hit.highlights("content")
-                for text in temp:
-                    highlight += text
-
-                urls.append([hit['url'], hit['title'], hit['tags'], highlight])
+                content = hit.highlights("content", top=8)
+                content = re.sub('((\'|\"), u(\'|\"))', '... ', content)
+                content = re.sub('(\\\u)|(\'u)|(u\')|(\|)|(\\\\)', '', content)
+                tags = hit.highlights("tags", top=4)
+                tags = re.sub('((\'|\"), u(\'|\"))', '... ', tags)
+                tags = re.sub('(\\\u)|(\'u)|(u\')|(\|)|(\\\\)', '', tags)
+                urls.append(
+                        [hit['url'], hit['title'], tags.encode('utf-8', 'ignore'), content.encode('utf-8', 'ignore')])
 
             context['urls'] = urls
             context['nums'] = len(results)
@@ -52,34 +54,25 @@ def searchview(request):
             with ix.searcher() as s:
                 results = s.search_page(q, page)
                 for hit in results:
-                    highlight = ''
-                    temp = hit.highlights("content")
-                    for text in temp:
-                        highlight += text
-
-                    urls.append([hit['url'], hit['title'], hit['tags'], highlight])
+                    content = hit.highlights("content", top=8)
+                    content = re.sub('((\'|\"), u(\'|\"))', '... ', content)
+                    content = re.sub('(\\\u)|(\'u)|(u\')|(\|)|(\\\\)', '', content)
+                    tags = hit.highlights("tags", top=4)
+                    tags = re.sub('((\'|\"), u(\'|\"))', '... ', tags)
+                    tags = re.sub('(\\\u)|(\'u)|(u\')|(\|)|(\\\\)', '', tags)
+                    urls.append([hit['url'], hit['title'], tags.encode('utf-8', 'ignore'),
+                                 content.encode('utf-8', 'ignore')])
 
                 context['urls'] = urls
                 context['nums'] = len(results)
-        #
-        # url_list = urls
-        # paginator = Paginator(url_list, 10)
-        # page = request.GET.get('page')
-        # try:
-        #     contacts = paginator.page(page)
-        # except PageNotAnInteger:
-        #     contacts = paginator.page(1)
-        # except EmptyPage:
-        #     contacts = paginator.page(paginator.num_pages)
 
-        # context['urls'] = contacts
-        if len(results)%10 == 0:
-            context['end'] = len(results)/10
+        if len(results) % 10 == 0:
+            context['end'] = len(results) / 10
         else:
-            context['end'] = len(results)/10 + 1
+            context['end'] = len(results) / 10 + 1
         if context['end'] < page:
             page = context['end']
         context['page'] = page
-        return render(request, 'search.html' , context)
+        return render(request, 'search.html', context)
 
     return render(request, 'search.html')
