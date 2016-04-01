@@ -56,6 +56,8 @@ class fourthspider(scrapy.Spider):
                        re.compile(r'\d\d\d\d-\d\d-\d\d'),
                        re.compile(r'\/eventcal\/'),
                        re.compile(r'week/\d\d\d\d-W\d+'),
+                       re.compile(r'nptel\.iitg\.ernet\.in'),
+
                        ]
 
         self.crawled_hash = []
