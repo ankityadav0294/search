@@ -4,10 +4,11 @@
 
 
 from django.conf.urls import url
-from views import searchview
+from views import searchview, autocomplete
 
 app_name = 'search'
 
 urlpatterns = [
-    url(r'^$', searchview, name="search")
+    url(r'^$', searchview, name="search"),
+    url(r'^getcustomer/$', autocomplete, name="autocomplete"),
 ]

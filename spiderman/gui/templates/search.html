@@ -6,26 +6,50 @@
     <title>Search it Up!!!</title>
     {% load staticfiles %}
     <link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-
 </head>
 
 <body>
     <div class="panel panel-default">
         <div class="panel-body">
             <form action="" method="get" class="form-inline container">
-                <div class="form-group">
+                <div class="form-group" >
                     <label for="searchbar" class="sr-only">Search</label>
                     <div class="input-group">
-                        <input type="text" onClick="this.select();" class="form-control" name="keyword" id="searchbar" value="{{ keyword }}">
+                        <input type="text" onkeyup="showCustomer(this.value)" onClick="this.select();" class="form-control" name="keyword" id="searchbar" value="{{ keyword }}" autocomplete="off">
                         <div class="input-group-addon"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></div>
                     </div>
+                    <div class="list-group" id="livesearch" style="position:relative; bottom: 21px; width: 81%"></div>
                 </div>
-                <input class="btn btn-primary" type="submit" value="Search" />
+                <input style="position: fixed; top:16px; left: 320px" class="btn btn-primary" type="submit" value="Search" />
+
+                <div class="checkbox" style="position: fixed; left: 400px; top: 20px;">
+                    <label>
+                        <input type="checkbox" value="1" name="pdf"
+                        {% if pdf %}
+                            {{ pdf }}
+                        {% endif %}>
+                        PDF
+                    </label>
+                </div>
+                <div class="checkbox" style="position: fixed; left: 450px; top: 20px;">
+                    <label>
+                        <input type="checkbox" value="1" name="doc"
+                        {% if doc %}
+                            {{ doc }}
+                        {% endif %}>
+                        DOC
+                    </label>
+                </div>
             </form>
         </div>
+
+
     </div>
 
     <div class="container">
+    {% ifequal nums 0 %}
+        <h4>Sorry, no matching keyword found.</h4>
+    {% endifequal %}
     {% if nums %}
         <small>Number of results: {{ nums }}</small>
 
@@ -49,20 +73,69 @@
         <div class="pagination">
             <span class="step-links">
                 {% ifnotequal page 1 %}
-                        <a href="?keyword={{ keyword }}&page={{ page }}&paginate=0">Previous</a>
+                        <a href="?keyword={{ keyword }}&page=1&paginate=0{% if pdf %}&pdf=1{% endif %}{% if doc %}&doc=1{% endif %}"><<&nbsp;&nbsp;</a>
+                {% endifnotequal %}
+                {% ifnotequal page 1 %}
+                        <a href="?keyword={{ keyword }}&page={{ page }}&paginate=0{% if pdf %}&pdf=1{% endif %}{% if doc %}&doc=1{% endif %}">Previous</a>
                 {% endifnotequal %}
                 <span class="current">
                     Page {{ page }} of {{ end }}
                 </span>
                 {% ifnotequal page end %}
-                    <a href="?keyword={{ keyword }}&page={{ page }}&paginate=1">Next</a>
+                    <a href="?keyword={{ keyword }}&page={{ page }}&paginate=1{% if pdf %}&pdf=1{% endif %}{% if doc %}&doc=1{% endif %}">Next</a>
+                {% endifnotequal %}
+                {% ifnotequal page end %}
+                        <a href="?keyword={{ keyword }}&page={{ end | add:'-1' }}&paginate=1{% if pdf %}&pdf=1{% endif %}{% if doc %}&doc=1{% endif %}">&nbsp;&nbsp;>></a>
                 {% endifnotequal %}
             </span>
         </div>
 
     {% endif %}
     </div>
-
     <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'jquery/jquery.min.js' %}"></script>
+    <script type="text/javascript">
+
+
+        $(document).ready(function(){
+            var el = $("input:text").get(0);
+            var elemLen = el.value.length;
+            el.selectionStart = elemLen;
+            el.selectionEnd = elemLen;
+            el.focus();
+{#            $( "#searchbar" ).keyup(function(e){#}
+{#                if (e.keyCode != 8 && e.keyCode != 46 && e.keyCode!=16 && e.keyCode!=17 && e.keyCode!=18  && e.keyCode!=9  && e.keyCode!=20  && e.keyCode!=32 && e.keyCode!=33  && e.keyCode!=34  && e.keyCode!=33  && e.keyCode!=35  && e.keyCode!=36  && e.keyCode!=37 && e.keyCode!=38 && e.keyCode!=39 && e.keyCode!=40 && e.keyCode!=45 && e.keyCode!=91 && e.keyCode!=92 && e.keyCode!=93 && e.keyCode!=112 && e.keyCode!=113 && e.keyCode!=114 && e.keyCode!=115 && e.keyCode!=116 && e.keyCode!=117 && e.keyCode!=118 && e.keyCode!=119 && e.keyCode!=120 && e.keyCode!=121 && e.keyCode!=122 && e.keyCode!=123 && e.keyCode!=144 && e.keyCode!=145)#}
+{#                {#}
+{##}
+{#                    window.location.replace("?keyword=" + $(this).val());#}
+{#                }#}
+{#            });#}
+        });
+
+        function showCustomer(str) {
+            var xhttp;
+            if (str == "") {
+                document.getElementById("txtHint").innerHTML = "";
+                document.getElementById("livesearch").style.border="0px";
+                return;
+            }
+
+            if (window.XMLHttpRequest) {
+                xhttp=new XMLHttpRequest();
+            } else {
+                xhttp=new ActiveXObject("Microsoft.XMLHTTP");
+            }
+
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    document.getElementById("livesearch").innerHTML=xhttp.responseText;
+                    document.getElementById("livesearch").style.border="1px solid #A5ACB2";
+                }
+            };
+            xhttp.open("GET", "getcustomer/?q="+str, true);
+            xhttp.send();
+        }
+    </script>
+
 </body>
 </html>
