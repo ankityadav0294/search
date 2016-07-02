@@ -70,6 +70,7 @@ class fourthspider(scrapy.Spider):
         self.files = open('indexed_files.txt', 'w')
         self.ignored = open('ignored.txt', 'w')
         self.inurls = open('inurls.txt', 'w')
+
         self.conn = sqlite3.connect('words.db')
         self.cursor = self.conn.cursor()
 
@@ -106,6 +107,7 @@ class fourthspider(scrapy.Spider):
         data = self.parse_data(response, m)
 
         item = MyItem()
+
         item['url'] = data['url']
         item['content'] = data['content']
         item['tags'] = data['tags']
@@ -134,6 +136,14 @@ class fourthspider(scrapy.Spider):
         # content = soup.get_text()
         texts = soup.findAll(text=True)
         content = filter(visible, texts)
+        temp = ''
+
+        for s in content:
+            try:
+                temp += ' ' + unicode(literal_eval("'%s'" % s))
+            except:
+                continue
+        content = temp
 
         temp = ''
 
@@ -147,6 +157,7 @@ class fourthspider(scrapy.Spider):
         content = split_string(content)
 
         tags = ""
+
         try:
             for h in soup.findAll(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7']):
                 tags = tags + " " + h.string
@@ -160,11 +171,12 @@ class fourthspider(scrapy.Spider):
 
         title = unicode(title)
         tags = unicode(tags)
-        content = unicode(content)
+        # content = unicode(content)
         url = unicode(response.url)
         urlid = unicode(str(m))
 
         self.writer.add_document(url=url, title=title, content=content, tags=tags, urlid=urlid)
+
         # self.logger.info("added To whoosh")
         return {'url': url, 'title': title, 'content': content, 'tags': tags, 'urlid': urlid}
 
@@ -175,6 +187,7 @@ class fourthspider(scrapy.Spider):
         href = None
         for link in soup.findAll('a'):
             href = link.get('href')
+
             if type(href) is (str or unicode):
                 if url.endswith(href):
                     break
@@ -235,7 +248,6 @@ class fourthspider(scrapy.Spider):
                     # print(word)
                     # self.logger.info("mysql roll back %s", e)
                     self.conn.rollback()
-
 
 def visible(element):
     if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
