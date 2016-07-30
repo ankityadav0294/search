@@ -7,13 +7,13 @@ Python 2.7 packages needed:
 - Scrapy
 
     ```sh
-    $ pip install --proxy="http://username:password@202.141.80.22:3128" scrapy
+    $ pip install scrapy
     ```
     
 - Whoosh
 
     ```sh
-    $ pip install --proxy="http://username:password@202.141.80.22:3128" whoosh
+    $ pip install whoosh
     ```
     
 ### Deploy Crawler:
