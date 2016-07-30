@@ -15,6 +15,12 @@ Python 2.7 packages needed:
     ```sh
     $ pip install whoosh
     ```
+
+- Django
+
+    ```sh
+    $ pip install django
+    ```
     
 ### Deploy Crawler:
 
@@ -31,6 +37,16 @@ Python 2.7 packages needed:
     ```
     ***INFO:*** Delete the scrapped.json file present in directory.
 
+### Use Search Engine:
+
+1. Go to gui subdirectory in spiderman directory.
+
+2. Deploy the virtual Server on 127.0.0.1:8000
+
+    ```sh
+    $ python manage.py runserver
+    ```
+    ***INFO:*** Remember to switch off the server using Ctrl+D.
 
 
     
